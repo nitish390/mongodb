@@ -1,0 +1,170 @@
+// Sample entry 
+{
+	"_id" : ObjectId("5954f11d375948761c9dc773"),
+	"address" : {
+		"building" : "469",
+		"coord" : [
+			-73.961704,
+			40.662942
+		],
+		"street" : "Flatbush Avenue",
+		"zipcode" : "11225"
+	},
+	"borough" : "Brooklyn",
+	"cuisine" : "Hamburgers",
+	"grades" : [
+		{
+			"date" : ISODate("2014-12-30T00:00:00Z"),
+			"grade" : "A",
+			"score" : 8
+		},
+		{
+			"date" : ISODate("2014-07-01T00:00:00Z"),
+			"grade" : "B",
+			"score" : 23
+		},
+		{
+			"date" : ISODate("2013-04-30T00:00:00Z"),
+			"grade" : "A",
+			"score" : 12
+		},
+		{
+			"date" : ISODate("2012-05-08T00:00:00Z"),
+			"grade" : "A",
+			"score" : 12
+		}
+	],
+	"name" : "Wendy'S",
+	"restaurant_id" : "30112340"
+}
+
+
+
+//Update single Document
+db.restaurants.update(
+    { "name" : "Juni" },
+    {
+      $set: { "cuisine": "American (New)" },
+      $currentDate: { "lastModified": true }
+    }
+)
+
+
+//Updating the embeded fields
+db.restaurants.update(
+  { "restaurant_id" : "41156888" },
+  { $set: { "address.street": "East 31st Street" } }
+)
+
+
+
+//Updaitng multiple documetsn in one go
+db.restaurants.update(
+  { "address.zipcode": "10016", cuisine: "Other" },
+  {
+    $set: { cuisine: "Category To Be Determined" },
+    $currentDate: { "lastModified": true }
+  },
+  { multi: true}
+)
+
+
+//Replacing the fields
+db.restaurants.update(
+   { "restaurant_id" : "41704620" },
+   {
+     "name" : "Vella 2",
+     "address" : {
+              "coord" : [ -73.9557413, 40.7720266 ],
+              "building" : "1480",
+              "street" : "2 Avenue",
+              "zipcode" : "10075"
+     }
+   }
+)
+
+
+
+//Delete operations
+db.restaurants.remove( { "borough": "Manhattan" } )
+
+
+
+// Groups and aggregation
+db.restaurants.aggregate(
+   [
+     { $group: { "_id": "$borough", "count": { $sum: 1 } } }
+   ]
+);
+
+
+//Filter and Group the docuemtns based on the specified criteria
+db.restaurants.aggregate(
+   [
+     { $match: { "borough": "Manhattan", "cuisine": "Brazilian" } },
+     { $group: { "_id": "$address.zipcode" , "count": { $sum: 1 } } }
+   ]
+);
+
+
+//Indexing using cusines
+db.restaurants.createIndex( { "cuisine": 1 } )
+
+
+
+//Packages Native Mongodb node
+npm install mongodb 
+npm install bson-ext --save
+npm install kerberos
+
+
+// Code to connect to Mongodb using nodejs driver
+
+var MongoClient = require('mongodb').MongoClient
+  , assert = require('assert');
+
+// Connection URL
+var url = 'mongodb://localhost:27017/myproject';
+
+// Use connect method to connect to the server
+MongoClient.connect(url, function(err, db) {
+  assert.equal(null, err);
+  console.log("Connected successfully to server");
+
+  db.close();
+});
+
+//Working code
+
+var MongoClient = require('mongodb').MongoClient
+  , assert = require('assert');
+
+// Connection URL
+var url = 'mongodb://nitish:comnitish@ds032340.mlab.com:32340/comnitish';
+
+// Use connect method to connect to the server
+MongoClient.connect(url, function(err, db) {
+  assert.equal(null, err);
+  console.log("Connected successfully to server");
+
+  insertDocuments(db, function() {
+    db.close();
+  });
+});
+
+//Inserting documents
+var insertDocuments = function(db, callback) {
+  // Get the documents collection
+  var collection = db.collection('documents');
+  // Insert some documents
+  collection.insertMany([
+    {a : 1}, {a : 2}, {a : 3}
+  ], function(err, result) {
+    assert.equal(err, null);
+    assert.equal(3, result.result.n);
+    assert.equal(3, result.ops.length);
+    console.log("Inserted 3 documents into the collection");
+    callback(result);
+  });
+}
+
